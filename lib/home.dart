@@ -1,9 +1,39 @@
 import 'package:flutter/material.dart';
 import 'drawer.dart';
-import 'profile.dart';
+import 'profile.dart'; // Importação correta da tela de perfil
+import 'trade.dart';  // Importação correta da tela de doação
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'comic.detail.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  List<Map<String, dynamic>> _comics = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchComics();
+  }
+
+  Future<void> _fetchComics() async {
+    final response = await http.get(Uri.parse('https://api.example.com/comics'));
+
+    if (response.statusCode == 200) {
+      setState(() {
+        _comics = List<Map<String, dynamic>>.from(json.decode(response.body));
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao carregar quadrinhos: ${response.body}')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,7 +56,6 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Recém adicionados
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Text(
@@ -38,16 +67,9 @@ class HomeScreen extends StatelessWidget {
               height: 200,
               child: ListView(
                 scrollDirection: Axis.horizontal,
-                children: [
-                  _buildComicCard(context, null, 'Título Exemplo', 'Editora Exemplo', 'Proprietário Exemplo', 'Sinopse Exemplo', 'Fácil'),
-                  _buildComicCard(context, null, 'Título Exemplo', 'Editora Exemplo', 'Proprietário Exemplo', 'Sinopse Exemplo', 'Fácil'),
-                  _buildComicCard(context, null, 'Título Exemplo', 'Editora Exemplo', 'Proprietário Exemplo', 'Sinopse Exemplo', 'Fácil'),
-                  _buildComicCard(context, null, 'Título Exemplo', 'Editora Exemplo', 'Proprietário Exemplo', 'Sinopse Exemplo', 'Fácil'),
-                  _buildComicCard(context, null, 'Título Exemplo', 'Editora Exemplo', 'Proprietário Exemplo', 'Sinopse Exemplo', 'Fácil'),
-                ],
+                children: _comics.map((comic) => _buildComicCard(context, comic)).toList(),
               ),
             ),
-            // Todos os quadrinhos
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Text(
@@ -56,7 +78,6 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             _buildComicsGrid(context),
-            // Opiniões dos leitores
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Text(
@@ -85,12 +106,17 @@ class HomeScreen extends StatelessWidget {
         ],
         onTap: (index) {
           if (index == 0) {
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => HomeScreen()),
             );
+          } else if (index == 1) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => TradeScreen()), // Navegar para TradeScreen
+            );
           } else if (index == 2) {
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => ProfileScreen()),
             );
@@ -100,19 +126,19 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildComicCard(BuildContext context, String? imagePath, String title, String publisher, String owner, String synopsis, String readingType) {
+  Widget _buildComicCard(BuildContext context, Map<String, dynamic> comic) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => ComicDetailScreen(
-              imagePath: imagePath,
-              title: title,
-              publisher: publisher,
-              owner: owner,
-              synopsis: synopsis,
-              readingType: readingType,
+              imagePath: comic['imagePath'],
+              title: comic['title'],
+              publisher: comic['publisher'],
+              owner: comic['owner'],
+              synopsis: comic['synopsis'],
+              readingType: comic['readingType'],
             ),
           ),
         );
@@ -124,20 +150,16 @@ class HomeScreen extends StatelessWidget {
           border: Border.all(color: Colors.grey),
           borderRadius: BorderRadius.circular(8.0),
         ),
-        child: imagePath != null
-            ? Column(
-                children: [
-                  Image.asset(imagePath, height: 150, fit: BoxFit.cover),
-                  SizedBox(height: 8.0),
-                ],
-              )
-            : Center(
-                child: Text(
-                  'Espaço em branco',
-                  style: TextStyle(color: Colors.grey),
-                  textAlign: TextAlign.center,
-                ),
-              ),
+        child: Column(
+          children: [
+            Image.network(comic['imagePath'], height: 150, fit: BoxFit.cover),
+            SizedBox(height: 8.0),
+            Text(
+              comic['title'],
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -151,15 +173,7 @@ class HomeScreen extends StatelessWidget {
         mainAxisSpacing: 8.0,
         shrinkWrap: true,
         physics: NeverScrollableScrollPhysics(),
-        children: [
-          _buildComicCard(context, null, 'Título Exemplo', 'Editora Exemplo', 'Proprietário Exemplo', 'Sinopse Exemplo', 'Fácil'),
-          _buildComicCard(context, null, 'Título Exemplo', 'Editora Exemplo', 'Proprietário Exemplo', 'Sinopse Exemplo', 'Fácil'),
-          _buildComicCard(context, null, 'Título Exemplo', 'Editora Exemplo', 'Proprietário Exemplo', 'Sinopse Exemplo', 'Fácil'),
-          _buildComicCard(context, null, 'Título Exemplo', 'Editora Exemplo', 'Proprietário Exemplo', 'Sinopse Exemplo', 'Fácil'),
-          _buildComicCard(context, null, 'Título Exemplo', 'Editora Exemplo', 'Proprietário Exemplo', 'Sinopse Exemplo', 'Fácil'),
-          _buildComicCard(context, null, 'Título Exemplo', 'Editora Exemplo', 'Proprietário Exemplo', 'Sinopse Exemplo', 'Fácil'),
-          // Adicione mais quadrinhos conforme necessário
-        ],
+        children: _comics.map((comic) => _buildComicCard(context, comic)).toList(),
       ),
     );
   }
@@ -169,9 +183,8 @@ class HomeScreen extends StatelessWidget {
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          _buildOpinionCard('assets/user1.jpg', 'José Nascimento', 'Mangá muito bom, personagens engraçados e carismáticos. Obra de gênio.', 5),
-          _buildOpinionCard('assets/user2.jpg', 'Maria Silva', 'Ação do começo ao fim, sem sangue, sem lacração, 4 estrelas.', 4),
-          // Adicione mais opiniões conforme necessário
+          _buildOpinionCard('assets/user_avatar.png', 'José Nascimento', 'Mangá muito bom, personagens engraçados e carismáticos. Obra de gênio.', 5),
+          _buildOpinionCard('assets/user_avatar.png', 'Maria Silva', 'Ação do começo ao fim, sem sangue, sem lacração, 4 estrelas.', 4),
         ],
       ),
     );

@@ -126,6 +126,7 @@ class AllComicsScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
             ),
+          
     );
   }
 }

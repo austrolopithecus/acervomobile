@@ -1,7 +1,42 @@
+import 'package:acervo_mobile/trade.dart';
 import 'package:flutter/material.dart';
 import 'home.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
+  @override
+  _ProfileScreenState createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  List<Map<String, dynamic>> _comicsToLend = [];
+  List<Map<String, dynamic>> _comicsReading = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchComics();
+  }
+
+  Future<void> _fetchComics() async {
+    // Carregar quadrinhos para empréstimo
+    final responseLend = await http.get(Uri.parse('https://api.example.com/comics/lend'));
+    // Carregar quadrinhos que está lendo
+    final responseReading = await http.get(Uri.parse('https://api.example.com/comics/reading'));
+
+    if (responseLend.statusCode == 200 && responseReading.statusCode == 200) {
+      setState(() {
+        _comicsToLend = List<Map<String, dynamic>>.from(json.decode(responseLend.body));
+        _comicsReading = List<Map<String, dynamic>>.from(json.decode(responseReading.body));
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao carregar quadrinhos')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -47,34 +82,31 @@ class ProfileScreen extends StatelessWidget {
                     height: 200,
                     child: ListView(
                       scrollDirection: Axis.horizontal,
-                      children: [
-                        _buildComicCard(null),
-                        _buildComicCard(null),
-                        _buildComicCard(null),
-                      ],
+                      children: _comicsToLend.map((comic) => _buildComicCard(comic)).toList(),
                     ),
                   ),
                 ],
               ),
             ),
             // Lendo no momento
-            Container(
-              color: Colors.greenAccent.withOpacity(0.3),
-              width: double.infinity,
-              padding: const EdgeInsets.all(16.0),
-              margin: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Lendo no momento:',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 8.0),
-                  _buildComicCard(null),
-                ],
+            if (_comicsReading.isNotEmpty)
+              Container(
+                color: Colors.greenAccent.withOpacity(0.3),
+                width: double.infinity,
+                padding: const EdgeInsets.all(16.0),
+                margin: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Lendo no momento:',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 8.0),
+                    _buildComicCard(_comicsReading[0]),
+                  ],
+                ),
               ),
-            ),
             // Botão de Editar Perfil
             Padding(
               padding: const EdgeInsets.all(16.0),
@@ -122,13 +154,26 @@ class ProfileScreen extends StatelessWidget {
               context,
               MaterialPageRoute(builder: (context) => HomeScreen()),
             );
+          } else if (index == 1) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => TradeScreen()), // Navegar para TradeScreen
+            );
+          } else if (index == 2) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => ProfileScreen()),
+            );
           }
         },
       ),
     );
   }
 
-  Widget _buildComicCard(String? imagePath) {
+  Widget _buildComicCard(Map<String, dynamic>? comic) {
+    if (comic == null) {
+      return SizedBox.shrink();
+    }
     return Container(
       width: 140,
       margin: EdgeInsets.symmetric(horizontal: 8.0),
@@ -136,20 +181,16 @@ class ProfileScreen extends StatelessWidget {
         border: Border.all(color: Colors.grey),
         borderRadius: BorderRadius.circular(8.0),
       ),
-      child: imagePath != null
-          ? Column(
-              children: [
-                Image.asset(imagePath, height: 150, fit: BoxFit.cover),
-                SizedBox(height: 8.0),
-              ],
-            )
-          : Center(
-              child: Text(
-                'Espaço em branco',
-                style: TextStyle(color: Colors.grey),
-                textAlign: TextAlign.center,
-              ),
-            ),
+      child: Column(
+        children: [
+          Image.network(comic['imagePath'], height: 150, fit: BoxFit.cover),
+          SizedBox(height: 8.0),
+          Text(
+            comic['title'],
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
     );
   }
 }
