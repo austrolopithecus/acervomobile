@@ -5,6 +5,10 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class TradeScreen extends StatefulWidget {
+  final String userName; // Adicionando o nome do usuário como parâmetro
+
+  TradeScreen({required this.userName});
+
   @override
   _TradeScreenState createState() => _TradeScreenState();
 }
@@ -131,12 +135,12 @@ class _TradeScreenState extends State<TradeScreen> {
           } else if (index == 1) {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => TradeScreen()), // Navegar para TradeScreen
+              MaterialPageRoute(builder: (context) => TradeScreen(userName: widget.userName)), // Navegar para TradeScreen
             );
           } else if (index == 2) {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => ProfileScreen()),
+              MaterialPageRoute(builder: (context) => ProfileScreen(userName: widget.userName)),
             );
           }
         },

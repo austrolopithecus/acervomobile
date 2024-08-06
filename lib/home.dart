@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'drawer.dart';
-import 'profile.dart'; // Importação correta da tela de perfil
+import 'profile.dart';
 import 'trade.dart';  // Importação correta da tela de doação
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'comic.detail.dart';
+import 'all.comic.dart'; // Certifique-se de importar corretamente
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -13,11 +14,13 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<Map<String, dynamic>> _comics = [];
+  String _userName = ''; // Adicionando variável para o nome do usuário
 
   @override
   void initState() {
     super.initState();
     _fetchComics();
+    _fetchUserName();
   }
 
   Future<void> _fetchComics() async {
@@ -34,11 +37,25 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _fetchUserName() async {
+    final response = await http.get(Uri.parse('https://api.example.com/user'));
+
+    if (response.statusCode == 200) {
+      setState(() {
+        _userName = json.decode(response.body)['name'];
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao carregar nome do usuário: ${response.body}')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Bem vindo Usuário'),
+        title: Text('Bem vindo $_userName'),
         leading: Builder(
           builder: (context) => IconButton(
             icon: Icon(Icons.menu),
@@ -51,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      drawer: DrawerMenu(),
+      drawer: DrawerMenu(comics: _comics), // Passando a lista de quadrinhos para DrawerMenu
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,14 +95,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             _buildComicsGrid(context),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                'Opiniões dos leitores:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ),
-            _buildOpinionsList(),
           ],
         ),
       ),
@@ -118,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
           } else if (index == 2) {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => ProfileScreen()),
+              MaterialPageRoute(builder: (context) => ProfileScreen(userName: _userName)),
             );
           }
         },
@@ -174,39 +183,6 @@ class _HomeScreenState extends State<HomeScreen> {
         shrinkWrap: true,
         physics: NeverScrollableScrollPhysics(),
         children: _comics.map((comic) => _buildComicCard(context, comic)).toList(),
-      ),
-    );
-  }
-
-  Widget _buildOpinionsList() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          _buildOpinionCard('assets/user_avatar.png', 'José Nascimento', 'Mangá muito bom, personagens engraçados e carismáticos. Obra de gênio.', 5),
-          _buildOpinionCard('assets/user_avatar.png', 'Maria Silva', 'Ação do começo ao fim, sem sangue, sem lacração, 4 estrelas.', 4),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOpinionCard(String avatarPath, String name, String opinion, int rating) {
-    return Card(
-      margin: EdgeInsets.symmetric(vertical: 8.0),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundImage: AssetImage(avatarPath),
-        ),
-        title: Text(name),
-        subtitle: Text(opinion),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: List.generate(5, (index) {
-            return Icon(
-              index < rating ? Icons.star : Icons.star_border,
-            );
-          }),
-        ),
       ),
     );
   }

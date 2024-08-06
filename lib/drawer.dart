@@ -1,7 +1,16 @@
+import 'package:acervo_mobile/all.comic.dart';
 import 'package:flutter/material.dart';
-import 'all.comic.dart';
+import 'home.dart';
+import 'profile.dart';
+import 'trade.dart';
+import 'all.comic.dart'; // Certifique-se de importar corretamente
 
 class DrawerMenu extends StatelessWidget {
+  final List<Map<String, dynamic>> comics; // Adicionando a lista de quadrinhos
+  final String userName; // Adicionando o nome do usuário
+
+  DrawerMenu({required this.comics, required this.userName}); // Adicionando a lista de quadrinhos e o nome do usuário ao construtor
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -9,46 +18,47 @@ class DrawerMenu extends StatelessWidget {
         padding: EdgeInsets.zero,
         children: <Widget>[
           DrawerHeader(
+            child: Text('Menu'),
             decoration: BoxDecoration(
               color: Colors.blue,
             ),
-            child: Text(
-              'O que deseja?',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-              ),
-            ),
           ),
           ListTile(
-            leading: Icon(Icons.book),
-            title: Text('Todos os quadrinhos'),
+            title: Text('Home'),
             onTap: () {
-              Navigator.push(
+              Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => AllComicsScreen()),
+                MaterialPageRoute(builder: (context) => HomeScreen()),
               );
             },
           ),
           ListTile(
-            leading: Icon(Icons.house),
-            title: Text('Por editoras'),
+            title: Text('Doar'),
             onTap: () {
-              // Adicione a navegação desejada aqui
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => TradeScreen(userName: userName)),
+              );
             },
           ),
           ListTile(
-            leading: Icon(Icons.star),
-            title: Text('Mais lidos'),
+            title: Text('Perfil'),
             onTap: () {
-              // Adicione a navegação desejada aqui
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => ProfileScreen(userName: userName)),
+              );
             },
           ),
           ListTile(
-            leading: Icon(Icons.contact_support),
-            title: Text('Fale conosco'),
+            title: Text('Todos os quadrinhos'),
             onTap: () {
-              // Adicione a navegação desejada aqui
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AllComicsScreen(comics: comics), // Passando a lista de quadrinhos
+                ),
+              );
             },
           ),
         ],

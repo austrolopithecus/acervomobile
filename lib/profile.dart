@@ -5,6 +5,10 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ProfileScreen extends StatefulWidget {
+  final String userName; // Nome do usuário passado como parâmetro
+
+  ProfileScreen({required this.userName});
+
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
 }
@@ -58,7 +62,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   SizedBox(height: 8.0),
                   Text(
-                    'Arthur Costa',
+                    widget.userName, // Usando o nome do usuário passado como parâmetro
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -157,12 +161,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           } else if (index == 1) {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => TradeScreen()), // Navegar para TradeScreen
+              MaterialPageRoute(builder: (context) => TradeScreen()),
             );
           } else if (index == 2) {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => ProfileScreen()),
+              MaterialPageRoute(builder: (context) => ProfileScreen(userName: widget.userName)),
             );
           }
         },
